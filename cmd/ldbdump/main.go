@@ -15,6 +15,7 @@ import (
 var (
 	verifyChecksums = flag.Bool("c", false, "Verify checksums.")
 	truncate        = flag.Bool("t", false, "Truncate long keys and values.")
+	hexOutput       = flag.Bool("x", false, "Output in hex.")
 
 	kBuf, vBuf bytes.Buffer
 )
@@ -55,7 +56,11 @@ func dump(filename string) error {
 			k = trunc(&kBuf, k)
 			v = trunc(&vBuf, v)
 		}
-		fmt.Printf("%q: %q,\n", k, v)
+		if *hexOutput {
+			fmt.Printf("%x: %s,\n", k, v)
+		} else {
+			fmt.Printf("%q: %q,\n", k, v)
+		}
 	}
 	return t.Close()
 }
@@ -65,6 +70,10 @@ func trunc(dst *bytes.Buffer, b []byte) []byte {
 		return b
 	}
 	dst.Reset()
-	fmt.Fprintf(dst, "%s...(%d bytes)...%s", b[:20], len(b)-40, b[len(b)-20:])
+	if *hexOutput {
+		fmt.Fprintf(dst, "%x...(%d bytes)...%x", b[:20], len(b)-40, b[len(b)-20:])
+	} else {
+		fmt.Fprintf(dst, "%s...(%d bytes)...%s", b[:20], len(b)-40, b[len(b)-20:])
+	}
 	return dst.Bytes()
 }
